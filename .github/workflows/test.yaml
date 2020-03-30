@@ -1,6 +1,7 @@
 name: Build and Test
 on:
   push:
+  pull_request:
   release:
     types:
       - created
@@ -20,6 +21,7 @@ jobs:
       - name: Build
         run: make
       - name: Prepare Artifact
+        shell: bash
         run: cp LICENSE NOTICE README.md bin
       - name: Upload Artifact
         uses: actions/upload-artifact@v1
@@ -67,12 +69,9 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: ${{ runner.os }}
-          path: sv2v-${{ runner.os }}
-      - name: Setup Binary
-        run: |
-          mkdir -p bin
-          mv sv2v-${{ runner.os }}/sv2v bin/sv2v
-          chmod +x bin/sv2v
+          path: bin
+      - name: Mark Binary Executable
+        run: chmod +x bin/sv2v
       - name: Test
         run: |
           export PATH="$PATH:$HOME/.local/bin"
@@ -98,6 +97,7 @@ jobs:
         if: runner.os == 'macOS' || runner.os == 'Linux'
         run: chmod +x */sv2v
       - name: Create ZIP
+        shell: bash
         run: zip -r sv2v-${{ runner.os }} ./sv2v-${{ runner.os }}
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1.0.1
