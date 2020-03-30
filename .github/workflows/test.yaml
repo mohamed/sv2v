@@ -10,22 +10,30 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, macOS-latest]
+        os:
+          - ubuntu-18.04
+          - macOS-10.15
+          - windows-2019
     steps:
       - uses: actions/checkout@v1
+      - uses: mstksg/setup-stack@v2
       - name: Install Dependencies
-        run: |
-          brew install haskell-stack shunit2 icarus-verilog || ls
-          sudo apt-get install -y haskell-stack shunit2 flex bison autoconf gperf || ls
+        if: runner.os == 'macOS'
+        run: brew install haskell-stack shunit2 icarus-verilog
+      - name: Install Dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y haskell-stack shunit2 flex bison autoconf gperf
       - name: Cache iverilog
         uses: actions/cache@v1
+        if: runner.os == 'Linux'
         with:
           path: ~/.local
           key: ${{ runner.OS }}-iverilog-10-3
           restore-keys: ${{ runner.OS }}-iverilog-10-3
       - name: Install iverilog
+        if: runner.os == 'Linux'
         run: |
-          if [ "${{ runner.OS }}" = "Linux" ] && [ ! -e "$HOME/.local/bin/iverilog" ]; then
+          if [ ! -e "$HOME/.local/bin/iverilog" ]; then
             curl -L https://github.com/steveicarus/iverilog/archive/v10_3.tar.gz > iverilog-10_3.tar.gz
             tar -xzf iverilog-10_3.tar.gz
             cd iverilog-10_3
